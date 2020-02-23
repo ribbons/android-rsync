@@ -1,5 +1,5 @@
-Android Dropbear Builds
-=======================
+Android rsync Builds
+====================
 
 ![Build status](https://github.com/ribbons/android-rsync/workflows/Build/badge.svg)
 
