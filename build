@@ -20,7 +20,7 @@ toolchain=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64
 
 cd rsync
 
-./configure --host="$TARGET" \
+./configure --host="$TARGET" --disable-md2man \
     AR="$toolchain/bin/${TARGET/armv7a/arm}-ar" \
     CC="$toolchain/bin/$TARGET$PLATFORM-clang" \
     LD="$toolchain/bin/${TARGET/armv7a/arm}-ld" \
