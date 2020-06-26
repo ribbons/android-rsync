@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '30 12 * * 5'
 
+env:
+  SRC_OWNER: WayneD
+  SRC_REPO: rsync
+
 jobs:
   compile:
     name: Compile
@@ -18,15 +22,40 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Clone rsync repository
-        run: git clone https://git.samba.org/rsync.git/
+      - name: Query latest release tag
+        uses: octokit/graphql-action@v2.x
+        id: latest_release_data
+        with:
+          query: |
+            query release($owner:String!,$repo:String!) {
+              repository(owner:$owner,name:$repo) {
+                refs(refPrefix:"refs/tags/", first:1, orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
+                  edges {
+                    node {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          owner: ${{ env.SRC_OWNER }}
+          repo: ${{ env.SRC_REPO }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Find and checkout latest release tag
-        run: |
-          cd rsync
-          LATEST_RELEASE=$(git describe --abbrev=0)
-          git checkout "$LATEST_RELEASE"
-          echo ::set-env name=LATEST_RELEASE::"$LATEST_RELEASE"
+      - name: Latest release tag name
+        id: latest_release
+        uses: gr2m/get-json-paths-action@v1.x
+        with:
+          json: ${{ steps.latest_release_data.outputs.data }}
+          name: "repository.refs.edges[0].node.name"
+
+      - name: Checkout latest release
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ env.SRC_OWNER }}/${{ env.SRC_REPO }}
+          ref: ${{ steps.latest_release.outputs.name }}
+          path: ${{ env.SRC_REPO }}
 
       - name: Build script
         run: ./build
@@ -38,7 +67,7 @@ jobs:
           mkdir output buildinfo
           cp rsync/rsync output
           cp rsync/COPYING output/COPYING.txt
-          echo '${{ env.LATEST_RELEASE }}' > buildinfo/release
+          echo '${{ steps.latest_release.outputs.name }}' > buildinfo/release
           grep Pkg.Revision "$ANDROID_HOME/ndk-bundle/source.properties" | \
                cut -d ' ' -f 3 >> buildinfo/ndkver
 
