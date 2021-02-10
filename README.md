@@ -18,5 +18,4 @@ Manual Build
 
 * Ensure that the Android NDK is located at `$ANDROID_NDK_HOME` or
   `$ANDROID_HOME/ndk-bundle`.
-* Download and unpack the latest rsync source into a subfolder named `rsync`.
 * Run `./build`
