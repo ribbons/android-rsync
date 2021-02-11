@@ -26,9 +26,11 @@ jobs:
           script: |
             const query = `query release($owner:String!, $repo:String!) {
               repository(owner:$owner, name:$repo) {
-                releases(first:1, orderBy:{field:CREATED_AT, direction:DESC}) {
-                  nodes {
-                    tagName
+                refs(refPrefix:"refs/tags/", first:1, orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
+                  edges {
+                    node {
+                      name
+                    }
                   }
                 }
               }
@@ -38,7 +40,7 @@ jobs:
               repo: process.env.SRC_REPO,
             }
             const result = await github.graphql(query, vars)
-            return result.repository.releases.nodes[0].tagName
+            return result.repository.refs.edges[0].node.name
 
       - name: Update version file
         run: |
