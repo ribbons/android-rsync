@@ -1,3 +1,4 @@
+---
 name: Create PR if new version
 on:
   workflow_dispatch:
@@ -26,7 +27,8 @@ jobs:
           script: |
             const query = `query release($owner:String!, $repo:String!) {
               repository(owner:$owner, name:$repo) {
-                refs(refPrefix:"refs/tags/", first:1, orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
+                refs(refPrefix:"refs/tags/", first:1,
+                     orderBy:{field:TAG_COMMIT_DATE, direction:DESC}) {
                   edges {
                     node {
                       name
@@ -43,16 +45,22 @@ jobs:
             return result.repository.refs.edges[0].node.name
 
       - name: Update version file
-        run: |
-          echo "${{ steps.latest_release.outputs.result }}" > "${SRC_REPO}-version"
+        run: echo "${{ steps.latest_release.outputs.result }}"
+          > "${SRC_REPO}-version"
 
       - name: Create / update pull request if necessary
+        # yamllint disable-line rule:line-length
         uses: peter-evans/create-pull-request@9825ae65b1cb54b543b938503728b432a0176d29
+
         with:
-          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          commit-message: Update rsync to ${{ steps.latest_release.outputs.result }}
+          author: github-actions[bot]
+            <41898282+github-actions[bot]@users.noreply.github.com>
+          committer: github-actions[bot]
+            <41898282+github-actions[bot]@users.noreply.github.com>
+          commit-message: Update rsync to
+            ${{ steps.latest_release.outputs.result }}
           title: Update rsync to ${{ steps.latest_release.outputs.result }}
-          body: |
-            Updates the version of rsync to be built to ${{ steps.latest_release.outputs.result }}.
+          body: >
+            Updates the version of rsync to be built to
+            ${{ steps.latest_release.outputs.result }}.
           branch: update-version
