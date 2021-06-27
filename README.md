@@ -9,8 +9,8 @@ Build script to cross-compile [rsync](https://rsync.samba.org/) for Android.
 Precompiled Binaries
 --------------------
 
-armv7a and aarch64 binaries compiled under GitHub Actions are available as
-release assets from this repository.
+armv7a, aarch64, i686 and x86_64 Android binaries compiled under GitHub Actions
+are available as release assets from this repository.
 
 
 Manual Build

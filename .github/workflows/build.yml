@@ -20,6 +20,8 @@ jobs:
         target:
           - armv7a-linux-androideabi
           - aarch64-linux-android
+          - i686-linux-android
+          - x86_64-linux-android
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -98,12 +100,26 @@ jobs:
         with:
           name: aarch64-linux-android
 
+      - name: Fetch i686 artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: i686-linux-android
+
+      - name: Fetch x86_64 artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: x86_64-linux-android
+
       - name: Package assets
         run: |
           zip --junk-paths rsync-armv7a-linux-androideabi.zip \
               armv7a-linux-androideabi/*
           zip --junk-paths rsync-aarch64-linux-android.zip \
               aarch64-linux-android/*
+          zip --junk-paths rsync-i686-linux-android.zip \
+              i686-linux-android/*
+          zip --junk-paths rsync-x86_64-linux-android.zip \
+              x86_64-linux-android/*
 
       - name: Create release
         if: >
@@ -145,4 +161,30 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./rsync-aarch64-linux-android.zip
           asset_name: rsync-aarch64-linux-android.zip
+          asset_content_type: application/zip
+
+      - name: Upload i686-linux-android zip asset
+        if: >
+          env.BUILD_RELEASE != steps.latest_release.outputs.result &&
+          github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./rsync-i686-linux-android.zip
+          asset_name: rsync-i686-linux-android.zip
+          asset_content_type: application/zip
+
+      - name: Upload x86_64-linux-android zip asset
+        if: >
+          env.BUILD_RELEASE != steps.latest_release.outputs.result &&
+          github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./rsync-x86_64-linux-android.zip
+          asset_name: rsync-x86_64-linux-android.zip
           asset_content_type: application/zip
