@@ -67,6 +67,8 @@ jobs:
         run: |
           echo "BUILD_RELEASE=$(cat buildinfo/release)" >> "$GITHUB_ENV"
           echo "NDK_VERSION=$(cat buildinfo/ndkver)" >> "$GITHUB_ENV"
+          echo "JAR_VERSION=$(cat buildinfo/release | sed -e 's/^v//')" \
+                >> "$GITHUB_ENV"
 
       - name: Latest release tag name
         id: latest_release
@@ -120,6 +122,21 @@ jobs:
               i686-linux-android/*
           zip --junk-paths rsync-x86_64-linux-android.zip \
               x86_64-linux-android/*
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 11
+
+      - name: Package JAR
+        run: |
+          mkdir -p lib/armeabi-v7a lib/arm64-v8a lib/x86 lib/x86_64
+          cp -p armv7a-linux-androideabi/rsync lib/armeabi-v7a/librsync.so
+          cp -p aarch64-linux-android/rsync lib/arm64-v8a/librsync.so
+          cp -p i686-linux-android/rsync lib/x86/librsync.so
+          cp -p x86_64-linux-android/rsync lib/x86_64/librsync.so
+          jar cf android-rsync.jar lib
 
       - name: Create release
         if: >
@@ -188,3 +205,34 @@ jobs:
           asset_path: ./rsync-x86_64-linux-android.zip
           asset_name: rsync-x86_64-linux-android.zip
           asset_content_type: application/zip
+
+      - name: Upload JAR asset
+        if: >
+          env.BUILD_RELEASE != steps.latest_release.outputs.result &&
+          github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./android-rsync.jar
+          asset_name: android-rsync.jar
+          asset_content_type: application/java-archive
+
+      - name: Upload JAR to package registry
+        if: >
+          env.BUILD_RELEASE != steps.latest_release.outputs.result &&
+          github.event_name == 'push' && github.ref == 'refs/heads/master' &&
+          !contains(env.BUILD_RELEASE, 'pre')
+        run: |
+          mvn --batch-mode deploy:deploy-file \
+            -DgroupId=com.nerdoftheherd \
+            -DartifactId=android-rsync \
+            -Dversion="${{ env.JAR_VERSION }}" \
+            -Dfile=android-rsync.jar \
+            -DrepositoryId=github \
+            -Durl=https://maven.pkg.github.com/ribbons/android-rsync \
+            -DgeneratePom.description="rsync binaries built for Android with \
+          NDK version ${{ env.NDK_VERSION }}."
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
