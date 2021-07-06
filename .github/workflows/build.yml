@@ -137,7 +137,7 @@ jobs:
           cp -p i686-linux-android/rsync lib/x86/librsync.so
           cp -p x86_64-linux-android/rsync lib/x86_64/librsync.so
           cp -p aarch64-linux-android/COPYING.txt META-INF/LICENSE
-          jar cf android-dropbear.jar lib META-INF
+          jar cf android-rsync.jar lib META-INF
 
       - name: Create release
         if: >
