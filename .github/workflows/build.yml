@@ -131,12 +131,13 @@ jobs:
 
       - name: Package JAR
         run: |
-          mkdir -p lib/armeabi-v7a lib/arm64-v8a lib/x86 lib/x86_64
+          mkdir -p lib/armeabi-v7a lib/arm64-v8a lib/x86 lib/x86_64 META-INF
           cp -p armv7a-linux-androideabi/rsync lib/armeabi-v7a/librsync.so
           cp -p aarch64-linux-android/rsync lib/arm64-v8a/librsync.so
           cp -p i686-linux-android/rsync lib/x86/librsync.so
           cp -p x86_64-linux-android/rsync lib/x86_64/librsync.so
-          jar cf android-rsync.jar lib
+          cp -p aarch64-linux-android/COPYING.txt META-INF/LICENSE
+          jar cf android-dropbear.jar lib META-INF
 
       - name: Create release
         if: >
