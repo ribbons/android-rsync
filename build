@@ -29,10 +29,9 @@ cd rsync
 
 ./configure --host="$TARGET" --disable-md2man --disable-simd --disable-asm \
     --disable-lz4 --disable-openssl --disable-xxhash --disable-zstd \
-    AR="$toolchain/bin/${TARGET/armv7a/arm}-ar" \
+    AR="$toolchain/bin/llvm-ar" \
     CC="$toolchain/bin/$TARGET$PLATFORM-clang" \
-    LD="$toolchain/bin/${TARGET/armv7a/arm}-ld" \
-    RANLIB="$toolchain/bin/${TARGET/armv7a/arm}-ranlib" \
-    STRIP="$toolchain/bin/${TARGET/armv7a/arm}-strip"
+    RANLIB="$toolchain/bin/llvm-ranlib" \
+    STRIP="$toolchain/bin/llvm-strip"
 
 make
