@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Copyright © 2020-2021 Matt Robinson
+# Copyright © 2020-2022 Matt Robinson
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -32,7 +32,7 @@ grep Pkg.Revision "$ANDROID_NDK_HOME/source.properties" | \
 git clone --branch "$version" --depth 1 https://github.com/WayneD/rsync.git
 cd rsync
 
-./configure --host="$TARGET" --disable-md2man --disable-simd --disable-asm \
+./configure --host="$TARGET" --disable-md2man \
     --disable-lz4 --disable-openssl --disable-xxhash --disable-zstd \
     AR="$toolchain/bin/llvm-ar" \
     CC="$toolchain/bin/$TARGET$PLATFORM-clang" \
