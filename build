@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Copyright © 2020-2023 Matt Robinson
+# Copyright © 2020-2024 Matt Robinson
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -25,7 +25,7 @@ echo "$version" > buildinfo/release
 grep Pkg.Revision "$ANDROID_NDK_HOME/source.properties" | \
     cut -d ' ' -f 3 >> buildinfo/ndkver
 
-git clone --branch "$version" --depth 1 https://github.com/WayneD/rsync.git
+git clone -b "$version" --depth 1 https://github.com/RsyncProject/rsync.git
 cd rsync
 
 ./configure --host="$TARGET" --disable-md2man \
