@@ -1,5 +1,5 @@
 ---
-# Copyright © 2020-2023 Matt Robinson
+# Copyright © 2020-2024 Matt Robinson
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -125,82 +125,44 @@ jobs:
         if: >
           env.BUILD_RELEASE != steps.latest_release.outputs.result &&
           github.event_name == 'push' && github.ref == 'refs/heads/master'
-        id: create_release
-        uses: actions/create-release@v1
+        uses: actions/github-script@v7
         with:
-          tag_name: ${{ env.BUILD_RELEASE }}
-          release_name: ${{ env.BUILD_RELEASE }}
-          prerelease: ${{ contains(env.BUILD_RELEASE, 'pre') }}
-          body: >
-            rsync binary built for Android with NDK version
-            ${{ env.NDK_VERSION }}.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs')
+            console.log("Creating release")
 
-      - name: Upload armv7a-linux-androideabi zip asset
-        if: >
-          env.BUILD_RELEASE != steps.latest_release.outputs.result &&
-          github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./rsync-armv7a-linux-androideabi.zip
-          asset_name: rsync-armv7a-linux-androideabi.zip
-          asset_content_type: application/zip
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: process.env.BUILD_RELEASE,
+              name: process.env.BUILD_RELEASE,
+              prerelease: process.env.BUILD_RELEASE.includes('pre'),
+              body: "rsync binary built for Android with NDK version " +
+                    process.env.NDK_VERSION,
+            })
 
-      - name: Upload aarch64-linux-android zip asset
-        if: >
-          env.BUILD_RELEASE != steps.latest_release.outputs.result &&
-          github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./rsync-aarch64-linux-android.zip
-          asset_name: rsync-aarch64-linux-android.zip
-          asset_content_type: application/zip
+            const assets = [
+              'rsync-armv7a-linux-androideabi.zip',
+              'rsync-aarch64-linux-android.zip',
+              'rsync-i686-linux-android.zip',
+              'rsync-x86_64-linux-android.zip',
+              'android-rsync.jar',
+            ]
 
-      - name: Upload i686-linux-android zip asset
-        if: >
-          env.BUILD_RELEASE != steps.latest_release.outputs.result &&
-          github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./rsync-i686-linux-android.zip
-          asset_name: rsync-i686-linux-android.zip
-          asset_content_type: application/zip
-
-      - name: Upload x86_64-linux-android zip asset
-        if: >
-          env.BUILD_RELEASE != steps.latest_release.outputs.result &&
-          github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./rsync-x86_64-linux-android.zip
-          asset_name: rsync-x86_64-linux-android.zip
-          asset_content_type: application/zip
-
-      - name: Upload JAR asset
-        if: >
-          env.BUILD_RELEASE != steps.latest_release.outputs.result &&
-          github.event_name == 'push' && github.ref == 'refs/heads/master'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./android-rsync.jar
-          asset_name: android-rsync.jar
-          asset_content_type: application/java-archive
+            for(const asset of assets) {
+              console.log("Uploading " + asset)
+              await github.rest.repos.uploadReleaseAsset({
+                headers: {
+                  "content-type": asset.endsWith(".jar") ?
+                    "application/java-archive" : "application/zip",
+                },
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+                data: fs.readFileSync(asset),
+                name: asset,
+              })
+            }
 
       - name: Upload JAR to package registry
         if: >
