@@ -13,6 +13,10 @@ env:
   SRC_OWNER: RsyncProject
   SRC_REPO: rsync
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   update-version:
     name: Create PR if new version

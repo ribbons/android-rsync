@@ -12,6 +12,9 @@ on:
   schedule:
     - cron: '30 12 * * 5'
 
+permissions:
+  contents: read
+
 jobs:
   compile:
     name: Compile
@@ -62,6 +65,10 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: compile
+
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Fetch artifacts
