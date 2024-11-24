@@ -68,9 +68,11 @@ jobs:
 
     permissions:
       contents: write
-      packages: write
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Fetch artifacts
         uses: actions/download-artifact@v4
 
@@ -119,16 +121,37 @@ jobs:
         with:
           distribution: adopt
           java-version: 11
+          cache: maven
+          server-id: central
+          server-username: MAVEN_CENTRAL_USERNAME
+          server-password: MAVEN_CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_SIGNING_KEY }}
 
       - name: Package JAR
         run: |
-          mkdir -p lib/armeabi-v7a lib/arm64-v8a lib/x86 lib/x86_64 META-INF
-          cp -p armv7a-linux-androideabi/rsync lib/armeabi-v7a/librsync.so
-          cp -p aarch64-linux-android/rsync lib/arm64-v8a/librsync.so
-          cp -p i686-linux-android/rsync lib/x86/librsync.so
-          cp -p x86_64-linux-android/rsync lib/x86_64/librsync.so
-          cp -p aarch64-linux-android/COPYING.txt META-INF/LICENSE
-          jar cf android-rsync.jar lib META-INF
+          copyarchbinary() {
+            mkdir -p src/main/resources/lib/$2
+            cp -p $1/rsync src/main/resources/lib/$2/librsync.so
+          }
+
+          copyarchbinary armv7a-linux-androideabi armeabi-v7a
+          copyarchbinary aarch64-linux-android arm64-v8a
+          copyarchbinary i686-linux-android x86
+          copyarchbinary x86_64-linux-android x86_64
+
+          mkdir src/main/resources/META-INF
+          cp -p aarch64-linux-android/COPYING.txt \
+                src/main/resources/META-INF/LICENSE
+
+          mvn --batch-mode versions:set -DnewVersion="${{ env.JAR_VERSION }}"
+          mvn --batch-mode package
+          cp target/android-rsync-*.jar android-rsync.jar
+
+      - name: Upload JAR as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar
+          path: android-rsync.jar
 
       - name: Create release
         if: >
@@ -178,15 +201,8 @@ jobs:
           env.BUILD_RELEASE != steps.latest_release.outputs.result &&
           github.event_name == 'push' && github.ref == 'refs/heads/master' &&
           !contains(env.BUILD_RELEASE, 'pre')
-        run: |
-          mvn --batch-mode deploy:deploy-file \
-            -DgroupId=com.nerdoftheherd \
-            -DartifactId=android-rsync \
-            -Dversion="${{ env.JAR_VERSION }}" \
-            -Dfile=android-rsync.jar \
-            -DrepositoryId=github \
-            -Durl=https://maven.pkg.github.com/ribbons/android-rsync \
-            -DgeneratePom.description="rsync binaries built for Android with \
-          NDK version ${{ env.NDK_VERSION }}."
+        run: mvn --batch-mode deploy
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_SIGNING_PASSPHRASE }}
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
