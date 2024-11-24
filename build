@@ -16,6 +16,7 @@ toolchain=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64
 version=$(cat rsync-version)
 
 [ -d buildinfo ] || mkdir buildinfo
+echo $PLATFORM > buildinfo/minsdk
 echo "$version" > buildinfo/release
 grep Pkg.Revision "$ANDROID_NDK_HOME/source.properties" | \
     cut -d ' ' -f 3 >> buildinfo/ndkver

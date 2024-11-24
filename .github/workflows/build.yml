@@ -76,10 +76,9 @@ jobs:
       - name: Fetch artifacts
         uses: actions/download-artifact@v4
 
-      - name: Extract info to environment vars
+      - name: Extract version to environment vars
         run: |
           echo "BUILD_RELEASE=$(cat buildinfo/release)" >> "$GITHUB_ENV"
-          echo "NDK_VERSION=$(cat buildinfo/ndkver)" >> "$GITHUB_ENV"
           echo "JAR_VERSION=$(cat buildinfo/release | sed -e 's/^v//')" \
                 >> "$GITHUB_ENV"
 
@@ -169,8 +168,10 @@ jobs:
               tag_name: process.env.BUILD_RELEASE,
               name: process.env.BUILD_RELEASE,
               prerelease: process.env.BUILD_RELEASE.includes('pre'),
-              body: "rsync binary built for Android with NDK version " +
-                    process.env.NDK_VERSION,
+              body: "rsync binaries for Android API level " +
+                    fs.readFileSync("buildinfo/minsdk", "utf8").trimEnd() +
+                    " and above, built with NDK version " +
+                    fs.readFileSync("buildinfo/ndkver", "utf8").trimEnd(),
             })
 
             const assets = [
