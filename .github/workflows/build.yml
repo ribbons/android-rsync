@@ -49,14 +49,14 @@ jobs:
           cp rsync/COPYING output/COPYING.txt
 
       - name: Upload binaries as artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.target }}
           path: output
 
       - name: Upload build info as artifact
         if: matrix.target == 'armv7a-linux-androideabi'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: buildinfo
           path: buildinfo
@@ -147,7 +147,7 @@ jobs:
           cp target/android-rsync-*.jar android-rsync.jar
 
       - name: Upload JAR as artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: jar
           path: android-rsync.jar
