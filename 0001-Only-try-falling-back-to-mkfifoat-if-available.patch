@@ -1,0 +1,44 @@
+From 99bc66813be58d7c16810b179e53b574e88ac591 Mon Sep 17 00:00:00 2001
+From: Matt Robinson <git@nerdoftheherd.com>
+Date: Wed, 20 May 2026 20:19:12 +0100
+Subject: [PATCH] Only try falling back to mkfifoat() if available
+
+If MKNOD_CREATES_FIFOS is not defined by configure (such as when
+cross-compiling), mkfifo() is available but mkfifoat() is not then
+compilation fails since 30656c5e35.
+
+Add a function check for mkfifoat and update the preprocessor
+conditional that wraps the call to it to reference HAVE_MKFIFOAT.
+---
+ configure.ac | 2 +-
+ syscall.c    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 4062651d..b0b5d201 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -886,7 +886,7 @@ dnl AC_FUNC_MEMCMP
+ 
+ AC_FUNC_UTIME_NULL
+ AC_FUNC_ALLOCA
+-AC_CHECK_FUNCS(waitpid wait4 getcwd chown chmod lchmod mknod mkfifo \
++AC_CHECK_FUNCS(waitpid wait4 getcwd chown chmod lchmod mknod mkfifo mkfifoat \
+     fchmod fstat ftruncate strchr readlink link utime utimes lutimes strftime \
+     chflags getattrlist mktime innetgr linkat \
+     memmove lchown vsnprintf snprintf vasprintf asprintf setsid strpbrk \
+diff --git a/syscall.c b/syscall.c
+index e317bccc..eee96d46 100644
+--- a/syscall.c
++++ b/syscall.c
+@@ -597,7 +597,7 @@ int do_mknod_at(const char *pathname, mode_t mode, dev_t dev)
+ 		return ret;
+ 	}
+ 
+-#if !defined MKNOD_CREATES_FIFOS && defined HAVE_MKFIFO
++#if !defined MKNOD_CREATES_FIFOS && defined HAVE_MKFIFOAT
+ 	if (S_ISFIFO(mode))
+ 		ret = mkfifoat(dfd, bname, mode);
+ 	else
+-- 
+2.53.0
