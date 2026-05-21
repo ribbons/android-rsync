@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Copyright © 2020-2025 Matt Robinson
+# Copyright © 2020-2026 Matt Robinson
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -14,15 +14,23 @@ PLATFORM=21
 
 toolchain=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64
 version=$(cat rsync-version)
+patches=$(find . -maxdepth 1 -name "*.patch" | wc -l)
+[ "$patches" -lt 1 ] && unset -v patches
 
 [ -d buildinfo ] || mkdir buildinfo
 echo $PLATFORM > buildinfo/minsdk
-echo "$version" > buildinfo/release
+echo "$version${patches+p$patches}" > buildinfo/release
 grep Pkg.Revision "$ANDROID_NDK_HOME/source.properties" | \
     cut -d ' ' -f 3 >> buildinfo/ndkver
 
 git clone -b "$version" --depth 1 https://github.com/RsyncProject/rsync.git
 cd rsync
+
+if [ "$patches" ]; then
+    for patch in ../*.patch; do
+        patch -p1 < "$patch"
+    done
+fi
 
 ./configure --host="$TARGET" --disable-md2man \
     --disable-lz4 --disable-openssl --disable-xxhash --disable-zstd \
