@@ -1,5 +1,5 @@
 ---
-# Copyright © 2021-2024 Matt Robinson
+# Copyright © 2021-2026 Matt Robinson
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -52,9 +52,11 @@ jobs:
             const result = await github.graphql(query, vars)
             return result.repository.refs.edges[0].node.name
 
-      - name: Update version file
-        run: echo "${{ steps.latest_release.outputs.result }}"
-          > "${SRC_REPO}-version"
+      - name: Update files
+        run: |
+          echo "${{ steps.latest_release.outputs.result }}" \
+            > "${SRC_REPO}-version"
+          [ "$(git status --porcelain)" ] && rm -f *.patch || true
 
       - name: Create / update pull request if necessary
         # yamllint disable-line rule:line-length
