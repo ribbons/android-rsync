@@ -32,6 +32,11 @@ if [ "$patches" ]; then
     done
 fi
 
+export rsync_cv_HAVE_SECURE_MKSTEMP=yes \
+       rsync_cv_HAVE_SOCKETPAIR=yes \
+       rsync_cv_MKNOD_CREATES_FIFOS=yes \
+       rsync_cv_MKNOD_CREATES_SOCKETS=yes
+
 ./configure --host="$TARGET" --disable-md2man \
     --disable-lz4 --disable-openssl --disable-xxhash --disable-zstd \
     AR="$toolchain/bin/llvm-ar" \
