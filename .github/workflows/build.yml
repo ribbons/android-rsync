@@ -172,7 +172,7 @@ jobs:
                     fs.readFileSync("buildinfo/minsdk", "utf8").trimEnd() +
                     " and above, built with NDK version " +
                     fs.readFileSync("buildinfo/ndkver", "utf8").trimEnd() +
-                    " from "
+                    " from " +
                     fs.readFileSync("buildinfo/builtfrom", "utf8").trimEnd(),
             })
 
