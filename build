@@ -26,11 +26,19 @@ grep Pkg.Revision "$ANDROID_NDK_HOME/source.properties" | \
 git clone -b "$version" --depth 1 https://github.com/RsyncProject/rsync.git
 cd rsync
 
+builtfrom="upstream commit $(git rev-parse --short=10 HEAD)"
+
 if [ "$patches" ]; then
+    [ "$patches" -gt 1 ] && plural="es"
+    builtfrom+=" plus the following patch$plural:"$'\n'
+
     for patch in ../*.patch; do
         patch -p1 < "$patch"
+        builtfrom+=$'\n- '$(basename "$patch" .patch)
     done
 fi
+
+echo "$builtfrom" > ../buildinfo/builtfrom
 
 export rsync_cv_HAVE_SECURE_MKSTEMP=yes \
        rsync_cv_HAVE_SOCKETPAIR=yes \

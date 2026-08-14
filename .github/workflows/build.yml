@@ -171,7 +171,9 @@ jobs:
               body: "rsync binaries for Android API level " +
                     fs.readFileSync("buildinfo/minsdk", "utf8").trimEnd() +
                     " and above, built with NDK version " +
-                    fs.readFileSync("buildinfo/ndkver", "utf8").trimEnd(),
+                    fs.readFileSync("buildinfo/ndkver", "utf8").trimEnd() +
+                    " from "
+                    fs.readFileSync("buildinfo/builtfrom", "utf8").trimEnd(),
             })
 
             const assets = [
