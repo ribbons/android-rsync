@@ -1,8 +1,6 @@
 Android rsync Builds
 ====================
 
-![Build status](https://github.com/ribbons/android-rsync/workflows/Build/badge.svg)
-
 Build script to cross-compile [rsync](https://rsync.samba.org/) for Android.
 
 
