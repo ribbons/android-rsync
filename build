@@ -51,6 +51,7 @@ export rsync_cv_HAVE_SECURE_MKSTEMP=yes \
     AR="$toolchain/bin/llvm-ar" \
     CC="$toolchain/bin/$TARGET$PLATFORM-clang" \
     RANLIB="$toolchain/bin/llvm-ranlib" \
+    LDFLAGS="-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384" \
 
 make
 
